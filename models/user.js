@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   },
   email: String,
   password: String,
-  phone: number
+  phone: String
 })
 
 // Use schema to create model
