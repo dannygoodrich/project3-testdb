@@ -25,7 +25,10 @@ router.get('/addevent', function(req, res) {
 })
 
 router.post('/addevent', function(req, res) {
-
+    db.User.findOne(req.user.id)
+  .then(user => {
+      
+  })
     res.send('made event')
 })
 
@@ -35,6 +38,10 @@ router.get('/addfriend', function(req, res) {
 })
 
 router.post('/addfriend', function(req, res) {
+    db.User.findOne(req.user.id)
+  .then(user => {
+
+  })
     res.send('added friend')
 })
 
@@ -42,7 +49,7 @@ router.post('/addfriend', function(req, res) {
 router.get('/chooser', function(req, res) {
     var yelpUrl = 'https://api.yelp.com/v3/businesses/search?term=restaurants&location=Seattle';
     axios.get(yelpUrl, {headers: {
-        "Authorization": "F56f-X0lt9ouFNSBQycnR1dsPqdMCg40TIxEJ3-Jv75qaBkZRORcbuQfiT5KGxq5TfE6LwibTVOGKQ1N0tXPDVUk-RVbfWoWhZj8pvWGYw-_Gfk3Tx-LaQ3i1k1rXnYx"
+        "Authorization": Bearer API_KEY
     }}).then( function(apiResponse) {
         var restaurant = apiResponse.data.results;
         
