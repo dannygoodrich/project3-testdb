@@ -1,4 +1,9 @@
-const express = require('express');
+require('dotenv').config()
+// let cors = require('cors')
+let express = require('express')
+// let expressJwt = require('express-jwt')
+// let morgan = require('morgan')
+// let rowdyLogger = require('rowdy-logger')
 
 const app = express();
 const db = require('./models');
