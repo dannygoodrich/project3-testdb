@@ -27,7 +27,7 @@ router.get('/addevent', function(req, res) {
 router.post('/addevent', function(req, res) {
     db.User.findOne(req.user.id)
   .then(user => {
-      
+
   })
     res.send('made event')
 })
@@ -40,22 +40,36 @@ router.get('/addfriend', function(req, res) {
 router.post('/addfriend', function(req, res) {
     db.User.findOne(req.user.id)
   .then(user => {
-
+    user.friends.push({
+        name: 'Fanny',
+        email: 'email@email.com',
+        phone: '1231231234'
+    })
+    user.save().then(() => {
+        res.send({ friends: user.friends})
+    })
+    .catch(err => {
+        console.log('Aww suck', err)
+        res.status(503).send({ message: 'Error saving document' })
+      })
   })
-    res.send('added friend')
+  .catch(err => {
+    console.log('Server error', err)
+    res.status(500).send({ message: 'Server error' })
+  })  
 })
 
 
 router.get('/chooser', function(req, res) {
     var yelpUrl = 'https://api.yelp.com/v3/businesses/search?term=restaurants&location=Seattle';
     axios.get(yelpUrl, {headers: {
-        "Authorization": Bearer API_KEY
+        Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`
     }}).then( function(apiResponse) {
-        var restaurant = apiResponse.data.results;
+        var restaurant = apiResponse.data.businesses;
         
       
         console.log(apiResponse);
-        res.send('results', { restaurant });
+        res.send({ restaurant });
       }).catch(err => {
           console.log(err);
           res.send('error');

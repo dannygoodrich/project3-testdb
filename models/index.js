@@ -19,6 +19,7 @@ db.on('error', err => {
 // Make sure to export both your Museum and Piece models!
 module.exports.User = require('./user');
 module.exports.Event = require('./event');
+module.exports.Restaurant = require('./restaurants');
 
 
 

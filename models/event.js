@@ -1,16 +1,16 @@
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 
 
-// Create User Schema
+// // Create User Schema
 
-const eventSchema = new mongoose.Schema({
-  date: String,
-  time: String,
-  friends: String
-})
+// const eventSchema = new mongoose.Schema({
+//   date: String,
+//   time: String,
+//   friends: [userSchema]
+// })
 
-// Use schema to create model
-const Event = mongoose.model('Event', eventSchema);
+// // Use schema to create model
+// const Event = mongoose.model('Event', eventSchema);
 
-// Export User model
-module.exports = Event;
+// // Export User model
+// module.exports = Event;

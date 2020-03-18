@@ -1,39 +1,127 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../models');
-const passport = require('../config/ppConfig');
+require('dotenv').config()
+let db = require('../models')
+let jwt = require('jsonwebtoken')
+let router = require('express').Router()
 
-router.get('/signup', function(req, res) {
-  res.render('auth/signup');
-});
+// POST /auth/login (find and validate user; send token)
+router.post('/login', (req, res) => {
+  console.log(req.body)
+  // Find the user
+  db.User.findOne({ email: req.body.email })
+  .then(user => {
+    // Make sure the user exists and has a password
+    if (!user || !user.password) {
+      return res.status(404).send({ message: 'User not found!' })
+    }
 
-router.post('/signup', (req, res) => {
-  db.user.findOrCreate({
-    where: {
-      email: req.body.email
-    }, defaults: {
-      name: req.body.name,
-      password: req.body.password
+    // Good - they exist. Now we check the password
+    if (!user.isValidPassword(req.body.password)) {
+      return res.status(401).send({ message: 'Invalid credentials' })
     }
-  }).then(([user, created]) => {
-    if (created) {
-      console.log('user created');
-      passport.authenticate('local', {
-        successRedirect: '/',
-        successFlash: 'Thanks for signing up!'
-      })(req, res);
-    } else {
-      console.log('email already exist');
-      req.flash('error', 'Email already exist')
-      res.redirect('/auth/signup');
-    }
-  }).catch(err => {
-    console.log('Error occured finding or creating user');
-    console.log(err)
-    req.flash('error', err.message);
-    res.redirect('/auth/signup');
+
+    // Good user - issue a token and send it
+    let token = jwt.sign(user.toJSON(), process.env.JWT_SECRET, {
+      expiresIn: 60 * 60 * 8 // 8 hours in seconds
+    })
+    res.send({ token })
   })
-});
+  .catch(err => {
+    console.log('Error in POST /auth/login', err)
+    res.status(503).send({ message: 'Database or server-side error' })
+  })
+})
+
+// POST to /auth/signup (create user; generate token)
+router.post('/signup', (req, res) => {
+  console.log(req.body)
+  // Look up the user (make sure they aren't a duplicate)
+  db.User.findOne({ email: req.body.email })
+  .then(user => {
+    // If the user exists, do NOT let them create another account!
+    if (user) {
+      // Bad - this is signup, they shouldn't already exist
+      return res.status(409).send({ message: 'Email address in use!' })
+    }
+
+    // Good - the user doesn't exist :)
+    db.User.create(req.body)
+    .then(newUser => {
+      // Cool - I have a user. Now I need to make them a token!
+      let token = jwt.sign(newUser.toJSON(), process.env.JWT_SECRET, {
+        expiresIn: 60 * 60 * 8 // 8 hours in seconds
+      })
+
+      // Send that token
+      res.send({ token })
+    })
+    .catch(err => {
+      console.log('Error when creating user', err)
+      if (err.name === 'ValidationError') {
+        res.status(406).send({ message: 'Validation error!' })
+      }
+      else {
+        res.status(500).send({ message: 'Error creating user' })
+      }
+    })
+  })
+  .catch(err => {
+    console.log('Error in POST /auth/signup', err)
+    res.status(503).send({ message: 'Database or server error' })
+  })
+})
+
+// NOTE: User should be logged in to access this route
+router.get('/profile', (req, res) => {
+  // The user is logged in, so req.user should have data!
+  // TODO: Anything you want here!
+
+  // NOTE: This is the user data from the time the token was issued
+  // WARNING: If you update the user info those changes will not be reflected here
+  // To avoid this, reissue a token when you update user data
+  res.send({ message: 'Secret message for logged in people ONLY!' })
+})
+
+module.exports = router
+
+
+
+
+// const express = require('express');
+// const router = express.Router();
+// const db = require('../models');
+// const passport = require('../config/ppConfig');
+
+// router.get('/signup', function(req, res) {
+//   res.render('auth/signup');
+// });
+
+// router.post('/signup', (req, res) => {
+//   db.user.findOrCreate({
+//     where: {
+//       email: req.body.email
+//     }, defaults: {
+//       name: req.body.name,
+//       password: req.body.password
+//     }
+//   }).then(([user, created]) => {
+//     if (created) {
+//       console.log('user created');
+//       passport.authenticate('local', {
+//         successRedirect: '/',
+//         successFlash: 'Thanks for signing up!'
+//       })(req, res);
+//     } else {
+//       console.log('email already exist');
+//       req.flash('error', 'Email already exist')
+//       res.redirect('/auth/signup');
+//     }
+//   }).catch(err => {
+//     console.log('Error occured finding or creating user');
+//     console.log(err)
+//     req.flash('error', err.message);
+//     res.redirect('/auth/signup');
+//   })
+// });
 
 // router.post('/signup', (req,res) => {
 //   db.user.findOrCreate({
@@ -59,21 +147,21 @@ router.post('/signup', (req, res) => {
 //   })
 // })
 
-router.get('/login', function(req, res) {
-  res.render('auth/login');
-});
+// router.get('/login', function(req, res) {
+//   res.render('auth/login');
+// });
 
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/auth/login',
-  successFlash: 'Welcome',
-  failureFlash: 'invalid username or password'
-}));
+// router.post('/login', passport.authenticate('local', {
+//   successRedirect: '/',
+//   failureRedirect: '/auth/login',
+//   successFlash: 'Welcome',
+//   failureFlash: 'invalid username or password'
+// }));
 
-router.get('/logout', (req, res)=> {
-  req.logout();
-  req.flash('success', 'Smell ya later!');
-  res.redirect('/');
-});
+// router.get('/logout', (req, res)=> {
+//   req.logout();
+//   req.flash('success', 'Smell ya later!');
+//   res.redirect('/');
+// });
 
-module.exports = router;
+// module.exports = router;
