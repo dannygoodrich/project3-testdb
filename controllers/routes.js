@@ -4,38 +4,37 @@ const axios = require('axios');
 
 var db = require('../models');
 
-router.get('/', function(req, res) {
+// router.get('/', function(req, res) {
     
     
-      res.send('home')
-});
+//       res.send('home')
+// });
 
 
 
 
 
 
-router.get('/profile', function(req, res) {
-    res.send('profile')
-})
+// router.get('/profile', function(req, res) {
+//     res.send('profile')
+// })
 
 
-router.get('/addevent', function(req, res) {
-    res.send('addevent')
-})
+// router.get('/addevent', function(req, res) {
+//     res.send('addevent')
+// })
 
 router.post('/addevent', function(req, res) {
-    db.User.findOne(req.user.id)
-  .then(user => {
-
-  })
-    res.send('made event')
+    db.Event.create(req.body)
+  .then(event => {
+    res.redirect('chooser')
+  }).catch(err=>res.send(err))  
 })
 
 
-router.get('/addfriend', function(req, res) {
-    res.send('addfriend')
-})
+// router.get('/addfriend', function(req, res) {
+//     res.send('addfriend')
+// })
 
 router.post('/addfriend', function(req, res) {
     db.User.findOne(req.user.id)
@@ -61,7 +60,7 @@ router.post('/addfriend', function(req, res) {
 
 
 router.get('/chooser', function(req, res) {
-    var yelpUrl = 'https://api.yelp.com/v3/businesses/search?term=restaurants&location=Seattle';
+    var yelpUrl = `https://api.yelp.com/v3/businesses/search?term=restaurants&location=${req.body}`;
     axios.get(yelpUrl, {headers: {
         Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`
     }}).then( function(apiResponse) {

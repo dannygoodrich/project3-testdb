@@ -1,3 +1,4 @@
+let bcrypt = require('bcryptjs')
 const mongoose = require('mongoose');
 
 // Create User Schema
@@ -18,6 +19,7 @@ const userSchema = new mongoose.Schema({
 
 
 const eventSchema = new mongoose.Schema({
+  title: String,
   date: String,
   time: String,
   friends: [userSchema],
@@ -26,6 +28,31 @@ const eventSchema = new mongoose.Schema({
     ref: 'Restaurant'
   }]
 })
+
+// Use bcrypt to hash password
+userSchema.pre('save', function (next) {
+  if (this.isNew) {
+    // New, as opposed to modified
+    this.password = bcrypt.hashSync(this.password, 12)
+  }
+
+  next()
+})
+
+// Ensure that password doesn't get sent with the rest of the data
+userSchema.set('toJSON', {
+  transform: (doc, user) => {
+    delete user.password
+    delete user.__v
+    return user
+  }
+})
+
+// Create a helper function to compare the password hashes
+userSchema.methods.isValidPassword = function (typedPassword) {
+  return bcrypt.compareSync(typedPassword, this.password)
+}
+
 
 // Use schema to create model
 const Event = mongoose.model('Event', eventSchema);

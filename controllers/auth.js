@@ -36,9 +36,10 @@ router.post('/signup', (req, res) => {
   console.log(req.body)
   // Look up the user (make sure they aren't a duplicate)
   db.User.findOne({ email: req.body.email })
-  .then(user => {
+  .then(email => {
+    console.log(typeof email)
     // If the user exists, do NOT let them create another account!
-    if (user) {
+    if (email) {
       // Bad - this is signup, they shouldn't already exist
       return res.status(409).send({ message: 'Email address in use!' })
     }
@@ -47,6 +48,7 @@ router.post('/signup', (req, res) => {
     db.User.create(req.body)
     .then(newUser => {
       // Cool - I have a user. Now I need to make them a token!
+      console.log(newUser)
       let token = jwt.sign(newUser.toJSON(), process.env.JWT_SECRET, {
         expiresIn: 60 * 60 * 8 // 8 hours in seconds
       })

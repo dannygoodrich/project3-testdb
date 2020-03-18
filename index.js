@@ -7,13 +7,16 @@ let express = require('express')
 
 const app = express();
 const db = require('./models');
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.status(200).send({ message: 'Welcome to the MIB: mate in Beige'});
+    res.status(200).send({ message: 'Welcome'});
 });
 
-// include my bounties controller
+// include my controller
 app.use('/hey', require('./controllers/routes.js'))
+app.use('/auth', require('./controllers/auth.js'))
 
 // app.get('*', (req, res) => {
 //     res.status(404).send({ message: '404 not found'});
